@@ -1,2 +1,8 @@
 @import "tailwindcss";
 @import "tailwindcss-primeui";
+
+#web-animation-api .text-xl {
+  font-size: 1.5rem;
+  color: currentColor;
+  letter-spacing: 0.06em;
+}

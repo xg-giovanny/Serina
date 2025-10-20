@@ -1,27 +1,52 @@
 <template>
-    <h1>You did it!</h1>
-    <p>
-        Visit <a href="https://vuejs.org/" target="_blank" rel="noopener">vuejs.org</a> to read the
-        documentation
-    </p>
-
-    <div class="flex flex-col gap-12">
-        <div class="flex gap-6 flex-wrap">
-            <div
-                class="rounded-border p-4 border border-transparent flex items-center justify-center bg-primary hover:bg-primary-emphasis text-primary-contrast font-medium flex-auto transition-colors">
-                primary</div>
-            <div
-                class="rounded-border p-4 border border-transparent flex items-center justify-center bg-highlight hover:bg-highlight-emphasis font-medium flex-auto transition-colors">
-                highlight</div>
-            <div
-                class="rounded-border p-4 border border-surface flex items-center justify-center text-muted-color hover:text-color hover:bg-emphasis font-medium flex-auto transition-colors">
-                box</div>
+    <div class="p-50">
+        <div class="large grid centered square-grid">
+            <h2 ref="titleElement" class="text-8xl">XG NNGY</h2>
         </div>
-
     </div>
 </template>
 
+
 <script setup lang="ts">
+defineOptions({ name: 'LoginView' });
+
+import type { WAAPIAnimationParams, WAAPIFunctionValue } from 'animejs';
+import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { waapi, stagger, splitText } from 'animejs';
+
+// Referencia al elemento del título
+const titleElement = ref<HTMLElement | null>(null);
+let cleanup: (() => void) | null = null;
+
+onMounted(() => {
+    const el = titleElement.value;
+    if (!el) return;
+
+    // Dividir el contenido del H2 en caracteres preservando espacios
+    const splitter = splitText(el, { words: false, chars: true, includeSpaces: true });
+    const chars = splitter.chars as HTMLElement[];
+
+    const animationOptions: WAAPIAnimationParams = {
+        translate: '0 -6rem', // 0=posición original, -6rem=arriba
+        delay: stagger(100) as unknown as WAAPIFunctionValue,
+        duration: 600,
+        loop: true,
+        alternate: true,
+        ease: 'inOut(2)',
+    };
+
+    const animation = waapi.animate(chars, animationOptions);
+
+    // Limpieza al desmontar el componente
+    cleanup = () => {
+        animation.cancel();
+        splitter.revert();
+    };
+});
+
+onBeforeUnmount(() => {
+    if (cleanup) cleanup();
+});
 </script>
 
 <style scoped></style>
