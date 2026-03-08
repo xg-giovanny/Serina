@@ -1,7 +1,7 @@
 /**
  * excelParser.js
- * Utilidad para parsear archivos Excel usando SheetJS (xlsx)
- * Convierte archivos Excel a JSON para guardar en Supabase
+ * Utilidad para parsear archivos Excel y CSV usando SheetJS (xlsx)
+ * Convierte archivos Excel/CSV a JSON para guardar en Supabase
  */
 
 import * as XLSX from 'xlsx'
@@ -35,6 +35,38 @@ export async function parseExcelFile(file) {
     
     reader.onerror = () => reject(new Error('Error al leer el archivo'))
     reader.readAsArrayBuffer(file)
+  })
+}
+
+/**
+ * Lee un archivo CSV y lo convierte a JSON
+ * @param {File} file - Archivo CSV a procesar
+ * @returns {Promise<Array>} - Array de objetos con los datos
+ */
+export async function parseCSVFile(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    
+    reader.onload = (e) => {
+      try {
+        const data = e.target.result
+        const workbook = XLSX.read(data, { type: 'string' })
+        
+        // Obtener primera hoja
+        const firstSheetName = workbook.SheetNames[0]
+        const worksheet = workbook.Sheets[firstSheetName]
+        
+        // Convertir a JSON
+        const jsonData = XLSX.utils.sheet_to_json(worksheet)
+        
+        resolve(jsonData)
+      } catch (error) {
+        reject(error)
+      }
+    }
+    
+    reader.onerror = () => reject(new Error('Error al leer el archivo'))
+    reader.readAsText(file, 'UTF-8')
   })
 }
 
@@ -93,18 +125,28 @@ export function mapExcelToCartas(rawData) {
 }
 
 /**
- * Lee y procesa un archivo Excel de cartas
- * @param {File} file - Archivo Excel a procesar
+ * Lee y procesa un archivo Excel o CSV de cartas
+ * @param {File} file - Archivo Excel o CSV a procesar
  * @returns {Promise<Array>} - Array de cartas procesadas
  */
 export async function processCartasExcel(file) {
   try {
-    // Leer archivo
-    const rawData = await parseExcelFile(file)
+    let rawData
+    
+    // Determinar el tipo de archivo por extensión
+    const fileName = file.name.toLowerCase()
+    
+    if (fileName.endsWith('.csv')) {
+      // Procesar CSV
+      rawData = await parseCSVFile(file)
+    } else {
+      // Procesar Excel (xlsx, xls)
+      rawData = await parseExcelFile(file)
+    }
     
     // Validar que tenga datos
     if (!rawData || rawData.length === 0) {
-      throw new Error('El archivo Excel está vacío')
+      throw new Error('El archivo está vacío')
     }
     
     // Mapear datos
@@ -116,7 +158,7 @@ export async function processCartasExcel(file) {
       total: mappedData.length
     }
   } catch (error) {
-    console.error('Error procesando Excel:', error)
+    console.error('Error procesando archivo:', error)
     return {
       success: false,
       error: error.message
@@ -169,6 +211,7 @@ export function exportToExcel(data, filename = 'exportacion.xlsx') {
 
 export default {
   parseExcelFile,
+  parseCSVFile,
   mapExcelToCartas,
   processCartasExcel,
   getExcelColumns,

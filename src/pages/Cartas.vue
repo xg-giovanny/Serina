@@ -127,7 +127,7 @@
       <FileUpload
         mode="basic"
         name="excel"
-        accept=".xlsx,.xls"
+        accept=".xlsx,.xls,.csv"
         :maxFileSize="10000000"
         :auto="false"
         chooseLabel="Seleccionar Archivo"
@@ -328,17 +328,37 @@ const onFileSelect = (event) => {
   const reader = new FileReader()
   reader.onload = (e) => {
     try {
-      const data = new Uint8Array(e.target.result)
-      const workbook = XLSX.read(data, { type: 'array' })
-      const firstSheet = workbook.Sheets[workbook.SheetNames[0]]
-      const jsonData = XLSX.utils.sheet_to_json(firstSheet)
+      let jsonData
+      const fileName = file.name.toLowerCase()
+      
+      if (fileName.endsWith('.csv')) {
+        // Parse CSV
+        const data = e.target.result
+        const workbook = XLSX.read(data, { type: 'string' })
+        const firstSheet = workbook.Sheets[workbook.SheetNames[0]]
+        jsonData = XLSX.utils.sheet_to_json(firstSheet)
+      } else {
+        // Parse Excel
+        const data = new Uint8Array(e.target.result)
+        const workbook = XLSX.read(data, { type: 'array' })
+        const firstSheet = workbook.Sheets[workbook.SheetNames[0]]
+        jsonData = XLSX.utils.sheet_to_json(firstSheet)
+      }
+      
       previewData.value = jsonData
       toast.add({ severity: 'info', summary: 'Archivo leído', detail: `${jsonData.length} cartas encontradas`, life: 3000 })
     } catch (error) {
-      toast.add({ severity: 'error', summary: 'Error', detail: 'Error al leer el archivo Excel', life: 3000 })
+      toast.add({ severity: 'error', summary: 'Error', detail: 'Error al leer el archivo', life: 3000 })
     }
   }
-  reader.readAsArrayBuffer(file)
+  
+  // Read as ArrayBuffer for Excel, text for CSV
+  const fileName = file.name.toLowerCase()
+  if (fileName.endsWith('.csv')) {
+    reader.readAsText(file, 'UTF-8')
+  } else {
+    reader.readAsArrayBuffer(file)
+  }
 }
 
 const importCartas = async () => {

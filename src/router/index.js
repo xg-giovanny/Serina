@@ -49,7 +49,7 @@ const router = createRouter({
 
 // Actualizar título de la página
 router.beforeEach((to, from, next) => {
-  document.title = `SERINA`
+  document.title = `Serina`
   next()
 })
 

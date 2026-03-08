@@ -95,7 +95,7 @@ const props = defineProps({
   },
   accept: {
     type: String,
-    default: '.xlsx, .xls'
+    default: '.xlsx, .xls, .csv'
   },
   previewLimit: {
     type: Number,
@@ -148,14 +148,14 @@ watch(file, async (newFile) => {
 // Métodos
 function checkFileType(files) {
   return files.filter(f => 
-    f.name.endsWith('.xlsx') || f.name.endsWith('.xls')
+    f.name.endsWith('.xlsx') || f.name.endsWith('.xls') || f.name.endsWith('.csv')
   )
 }
 
 function onRejected() {
   $q.notify({
     type: 'negative',
-    message: 'Solo se permiten archivos Excel (.xlsx, .xls)',
+    message: 'Solo se permiten archivos Excel (.xlsx, .xls) o CSV (.csv)',
     position: 'top-right'
   })
   error.value = 'Tipo de archivo no válido'
