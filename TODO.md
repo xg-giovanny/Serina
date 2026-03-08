@@ -1,16 +1,37 @@
-# TODO: Sistema de Autenticación con Supabase
+# Plan de Mejoras - MainLayout.vue
 
-## Tasks
-- [x] 1. Actualizar SQL con tabla users (contraseña encriptada con bcrypt)
-- [x] 2. Crear authService.js - Servicio de autenticación
-- [x] 3. Crear authStore.js - Estado de sesión con Pinia
-- [x] 4. Crear Login.vue - Página de inicio de sesión
-- [x] 5. Crear Register.vue - Página de registro
-- [x] 6. Actualizar router/index.js con middleware de protección
-- [x] 7. Actualizar MainLayout.vue con logout y estado de usuario
+## Estado: ✅ COMPLETADO
 
-## Notes
-- Usar bcrypt para hash de contraseñas
-- Almacenar sesión en localStorage
-- Redirigir a login si no hay sesión activa
+## Problemas identificados y resueltos:
+
+### 1. Sidebar colapsado - Problemas de centrado y ajuste
+- ✅ El sidebar ahora tiene un ancho correcto de 72px cuando está colapsado (antes 70px)
+- ✅ Los elementos de navegación se centran correctamente cuando está colapsado
+- ✅ El botón de toggle está mejor posicionado y centrado
+- ✅ Las transiciones son suaves con cubic-bezier
+
+### 2. Iconos - Problemas de relleno (fill)
+- ✅ Los iconos ahora tienen color específico en estado activo (`color: var(--color-primary)`)
+- ✅ Se agregó efecto de glow/borde iluminado con `text-shadow`
+- ✅ Los iconos tienen tamaño más grande (20px) cuando el sidebar está colapsado
+- ✅ El color se hereda correctamente del elemento padre
+
+## Cambios realizados en `src/layouts/MainLayout.vue`:
+
+1. **Sidebar (lineas ~620-680)**:
+   - Ancho colapsado: 72px (antes 70px)
+   - Mejora del header y botón toggle
+   - Transición suave con rotate del ícono
+
+2. **Navegación (lineas ~720-830)**:
+   - Nuevos estilos con pseudo-elemento `::before` para efecto visual
+   - Gradiente para estado activo
+   - Icono con `text-shadow` en estado activo
+   - Centrado correcto en modo colapsado
+
+3. **Main Content (lineas ~870-885)**:
+   - Ajuste del margin-left y width para 72px
+
+## Archivos modificados:
+1. `src/layouts/MainLayout.vue` - Estilos CSS del componente
 

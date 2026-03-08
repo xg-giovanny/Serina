@@ -1,7 +1,7 @@
 /**
  * supabaseService.js
  * Servicios para operaciones CRUD con Supabase
- * Maneja todas las interacciones con la base de datos
+ * CON FILTRO DE SEGURIDAD POR USUARIO
  */
 
 import { supabase } from './supabaseClient'
@@ -13,19 +13,31 @@ function getCurrentUserId() {
   return session?.id || null
 }
 
+// Helper para verificar autenticación
+function requireAuth() {
+  const userId = getCurrentUserId()
+  if (!userId) {
+    throw new Error('No hay sesión activa')
+  }
+  return userId
+}
+
 // ============================================
 // SERVICIOS DE NÓMINA (GASTOS)
 // ============================================
 
 /**
- * Obtener todos los registros de nómina
+ * Obtener todos los registros de nómina del usuario actual
  * @returns {Promise<Array>}
  */
 export async function getAllNomina() {
   try {
+    const userId = requireAuth()
+    
     const { data, error } = await supabase
       .from('nomina')
       .select('*')
+      .eq('id_usuario', userId)
       .order('created_at', { ascending: false })
     
     if (error) throw error
@@ -43,7 +55,13 @@ export async function getAllNomina() {
  */
 export async function getNominaWithFilters(filters = {}) {
   try {
-    let query = supabase.from('nomina').select('*').order('created_at', { ascending: false })
+    const userId = requireAuth()
+    
+    let query = supabase
+      .from('nomina')
+      .select('*')
+      .eq('id_usuario', userId)
+      .order('created_at', { ascending: false })
     
     if (filters.categoria) {
       query = query.eq('categoria', filters.categoria)
@@ -74,9 +92,11 @@ export async function getNominaWithFilters(filters = {}) {
  */
 export async function createNomina(registro) {
   try {
+    const userId = requireAuth()
+    
     const registroWithUser = {
       ...registro,
-      id_usuario: getCurrentUserId()
+      id_usuario: userId
     }
     
     const { data, error } = await supabase
@@ -93,20 +113,28 @@ export async function createNomina(registro) {
 }
 
 /**
- * Actualizar registro de nómina
+ * Actualizar registro de nómina (solo del usuario actual)
  * @param {number} id - ID del registro
  * @param {Object} updates - Datos a actualizar
  * @returns {Promise<Object>}
  */
 export async function updateNomina(id, updates) {
   try {
+    const userId = requireAuth()
+    
     const { data, error } = await supabase
       .from('nomina')
       .update(updates)
       .eq('id', id)
+      .eq('id_usuario', userId)
       .select()
     
     if (error) throw error
+    
+    if (!data || data.length === 0) {
+      return { success: false, error: 'Registro no encontrado o no tienes permisos' }
+    }
+    
     return { success: true, data: data[0] }
   } catch (error) {
     console.error('Error updating nomina:', error)
@@ -115,16 +143,19 @@ export async function updateNomina(id, updates) {
 }
 
 /**
- * Eliminar registro de nómina
+ * Eliminar registro de nómina (solo del usuario actual)
  * @param {number} id - ID del registro
  * @returns {Promise<Object>}
  */
 export async function deleteNomina(id) {
   try {
+    const userId = requireAuth()
+    
     const { error } = await supabase
       .from('nomina')
       .delete()
       .eq('id', id)
+      .eq('id_usuario', userId)
     
     if (error) throw error
     return { success: true }
@@ -135,14 +166,17 @@ export async function deleteNomina(id) {
 }
 
 /**
- * Obtener estadísticas de nómina
+ * Obtener estadísticas de nómina del usuario actual
  * @returns {Promise<Object>}
  */
 export async function getNominaStats() {
   try {
+    const userId = requireAuth()
+    
     const { data, error } = await supabase
       .from('nomina')
       .select('precio, categoria, metodo_pago, fecha, created_at')
+      .eq('id_usuario', userId)
     
     if (error) throw error
     
@@ -192,14 +226,17 @@ export async function getNominaStats() {
 // ============================================
 
 /**
- * Obtener todas las cartas
+ * Obtener todas las cartas del usuario actual
  * @returns {Promise<Array>}
  */
 export async function getAllCartas() {
   try {
+    const userId = requireAuth()
+    
     const { data, error } = await supabase
       .from('cartas')
       .select('*')
+      .eq('id_usuario', userId)
       .order('character', { ascending: true })
     
     if (error) throw error
@@ -217,7 +254,13 @@ export async function getAllCartas() {
  */
 export async function getCartasWithFilters(filters = {}) {
   try {
-    let query = supabase.from('cartas').select('*').order('character', { ascending: true })
+    const userId = requireAuth()
+    
+    let query = supabase
+      .from('cartas')
+      .select('*')
+      .eq('id_usuario', userId)
+      .order('character', { ascending: true })
     
     if (filters.serie) {
       query = query.eq('series', filters.serie)
@@ -248,10 +291,11 @@ export async function getCartasWithFilters(filters = {}) {
  */
 export async function insertCartas(cartas) {
   try {
-    const idUsuario = getCurrentUserId()
+    const userId = requireAuth()
+    
     const cartasWithUser = cartas.map(carta => ({
       ...carta,
-      id_usuario: idUsuario
+      id_usuario: userId
     }))
     
     const { data, error } = await supabase
@@ -268,16 +312,19 @@ export async function insertCartas(cartas) {
 }
 
 /**
- * Eliminar carta
+ * Eliminar carta (solo del usuario actual)
  * @param {number} id - ID de la carta
  * @returns {Promise<Object>}
  */
 export async function deleteCarta(id) {
   try {
+    const userId = requireAuth()
+    
     const { error } = await supabase
       .from('cartas')
       .delete()
       .eq('id', id)
+      .eq('id_usuario', userId)
     
     if (error) throw error
     return { success: true }
@@ -288,14 +335,17 @@ export async function deleteCarta(id) {
 }
 
 /**
- * Obtener estadísticas de cartas
+ * Obtener estadísticas de cartas del usuario actual
  * @returns {Promise<Object>}
  */
 export async function getCartasStats() {
   try {
+    const userId = requireAuth()
+    
     const { data, error } = await supabase
       .from('cartas')
       .select('series, quality')
+      .eq('id_usuario', userId)
     
     if (error) throw error
     
@@ -330,14 +380,17 @@ export async function getCartasStats() {
 // ============================================
 
 /**
- * Obtener todos los tabs
+ * Obtener todos los tabs del usuario actual
  * @returns {Promise<Array>}
  */
 export async function getAllTabs() {
   try {
+    const userId = requireAuth()
+    
     const { data, error } = await supabase
       .from('tabs')
       .select('*')
+      .eq('id_usuario', userId)
       .order('created_at', { ascending: true })
     
     if (error) throw error
@@ -355,9 +408,11 @@ export async function getAllTabs() {
  */
 export async function createTab(tab) {
   try {
+    const userId = requireAuth()
+    
     const tabWithUser = {
       ...tab,
-      id_usuario: getCurrentUserId()
+      id_usuario: userId
     }
     
     const { data, error } = await supabase
@@ -374,16 +429,19 @@ export async function createTab(tab) {
 }
 
 /**
- * Eliminar tab
+ * Eliminar tab (solo del usuario actual)
  * @param {number} id - ID del tab
  * @returns {Promise<Object>}
  */
 export async function deleteTab(id) {
   try {
+    const userId = requireAuth()
+    
     const { error } = await supabase
       .from('tabs')
       .delete()
       .eq('id', id)
+      .eq('id_usuario', userId)
     
     if (error) throw error
     return { success: true }
@@ -394,16 +452,19 @@ export async function deleteTab(id) {
 }
 
 /**
- * Obtener tab por ID
+ * Obtener tab por ID (solo del usuario actual)
  * @param {number} id - ID del tab
  * @returns {Promise<Object>}
  */
 export async function getTabById(id) {
   try {
+    const userId = requireAuth()
+    
     const { data, error } = await supabase
       .from('tabs')
       .select('*')
       .eq('id', id)
+      .eq('id_usuario', userId)
       .single()
     
     if (error) throw error

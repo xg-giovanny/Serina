@@ -66,6 +66,7 @@
 }
 
 /* Dark Mode Override */
+html.dark,
 .dark {
   --bg-primary: #0a0a0f;
   --bg-card: #12121a;

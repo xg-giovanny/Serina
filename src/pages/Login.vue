@@ -1,16 +1,30 @@
 <template>
-  <div class="login-page">
-    <div class="login-container">
-      <div class="login-card">
-        <div class="login-header">
-          <i class="pi pi-bolt"></i>
+  <div class="auth-page">
+    <!-- Background Effects -->
+    <div class="bg-effects">
+      <div class="effect effect-1"></div>
+      <div class="effect effect-2"></div>
+      <div class="effect effect-3"></div>
+    </div>
+
+    <div class="auth-container">
+      <div class="auth-card">
+        <!-- Logo Section -->
+        <div class="auth-logo">
+          <div class="logo-icon">
+            <i class="pi pi-bolt"></i>
+          </div>
           <h1>Serina</h1>
-          <p>Inicia sesión en tu cuenta</p>
+          <p class="subtitle">Inicia sesión en tu cuenta</p>
         </div>
 
-        <form @submit.prevent="handleLogin" class="login-form">
+        <!-- Login Form -->
+        <form @submit.prevent="handleLogin" class="auth-form">
           <div class="form-group">
-            <label for="username">Usuario</label>
+            <label for="username">
+              <i class="pi pi-user"></i>
+              Usuario
+            </label>
             <InputText
               id="username"
               v-model="username"
@@ -21,7 +35,10 @@
           </div>
 
           <div class="form-group">
-            <label for="password">Contraseña</label>
+            <label for="password">
+              <i class="pi pi-lock"></i>
+              Contraseña
+            </label>
             <Password
               id="password"
               v-model="password"
@@ -43,14 +60,15 @@
             type="submit"
             label="Iniciar Sesión"
             :loading="loading"
-            class="w-full mt-3"
+            class="w-full mt-3 auth-btn"
             icon="pi pi-sign-in"
           />
         </form>
 
-        <div class="login-footer">
+        <!-- Footer -->
+        <div class="auth-footer">
           <span>¿No tienes cuenta?</span>
-          <router-link to="/register" class="register-link">
+          <router-link to="/register" class="auth-link">
             Regístrate aquí
           </router-link>
         </div>
@@ -96,52 +114,177 @@ async function handleLogin() {
 </script>
 
 <style scoped>
-.login-page {
+.auth-page {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #1e1e2f 0%, #2d2d44 100%);
+  background: var(--bg-primary);
+  position: relative;
+  overflow: hidden;
 }
 
-.login-container {
+/* Background Effects */
+.bg-effects {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.effect {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(100px);
+  opacity: 0.4;
+}
+
+.effect-1 {
+  width: 500px;
+  height: 500px;
+  background: var(--neon-violet);
+  top: -150px;
+  left: -150px;
+  animation: float 15s ease-in-out infinite;
+}
+
+.effect-2 {
+  width: 400px;
+  height: 400px;
+  background: var(--neon-cyan);
+  bottom: -100px;
+  right: -100px;
+  animation: float 18s ease-in-out infinite reverse;
+}
+
+.effect-3 {
+  width: 300px;
+  height: 300px;
+  background: var(--neon-magenta);
+  top: 40%;
+  left: 60%;
+  animation: pulse 10s ease-in-out infinite;
+}
+
+.effect-4 {
+  width: 250px;
+  height: 250px;
+  background: var(--neon-green);
+  bottom: 30%;
+  left: 10%;
+  animation: float 12s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { 
+    transform: translate(0, 0) rotate(0deg); 
+  }
+  25% { 
+    transform: translate(30px, 50px) rotate(5deg); 
+  }
+  50% { 
+    transform: translate(60px, 20px) rotate(10deg); 
+  }
+  75% { 
+    transform: translate(20px, 40px) rotate(5deg); 
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { 
+    transform: translate(-50%, -50%) scale(1); 
+    opacity: 0.3; 
+  }
+  50% { 
+    transform: translate(-50%, -50%) scale(1.5); 
+    opacity: 0.5; 
+  }
+}
+
+/* Card entrance animation */
+.auth-card {
+  animation: cardEntrance 0.6s ease-out;
+}
+
+@keyframes cardEntrance {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.auth-container {
   width: 100%;
-  max-width: 420px;
+  max-width: 440px;
   padding: 20px;
+  position: relative;
+  z-index: 1;
 }
 
-.login-card {
-  background: #ffffff;
-  border-radius: 16px;
+.auth-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
   padding: 40px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-lg), 0 0 40px rgba(139, 92, 246, 0.1);
+  position: relative;
+  overflow: hidden;
 }
 
-.login-header {
+.auth-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--neon-violet), var(--neon-cyan), var(--neon-magenta));
+}
+
+/* Logo Section */
+.auth-logo {
   text-align: center;
   margin-bottom: 32px;
 }
 
-.login-header i {
-  font-size: 48px;
-  color: #6366f1;
-  margin-bottom: 16px;
+.logo-icon {
+  width: 72px;
+  height: 72px;
+  background: linear-gradient(135deg, var(--neon-violet), var(--neon-magenta));
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  box-shadow: 0 8px 30px rgba(139, 92, 246, 0.3);
 }
 
-.login-header h1 {
+.logo-icon i {
+  font-size: 36px;
+  color: white;
+}
+
+.auth-logo h1 {
   margin: 0;
-  font-size: 28px;
+  font-size: 32px;
   font-weight: 700;
-  color: #1e1e2f;
+  background: linear-gradient(135deg, var(--neon-violet), var(--neon-magenta));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-.login-header p {
+.auth-logo .subtitle {
   margin: 8px 0 0;
-  color: #6b7280;
+  color: var(--text-secondary);
   font-size: 14px;
 }
 
-.login-form {
+/* Form Styles */
+.auth-form {
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -154,52 +297,108 @@ async function handleLogin() {
 }
 
 .form-group label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-weight: 500;
-  color: #374151;
+  color: var(--text-primary);
   font-size: 14px;
 }
 
+.form-group label i {
+  color: var(--color-primary);
+  font-size: 14px;
+}
+
+/* Error Message */
 .error-message {
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 12px;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  border-radius: 8px;
-  color: #dc2626;
+  background: rgba(220, 38, 38, 0.1);
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  border-radius: var(--radius-sm);
+  color: var(--color-danger);
   font-size: 14px;
 }
 
-.login-footer {
-  margin-top: 24px;
+.error-message i {
+  font-size: 16px;
+}
+
+/* Auth Button */
+.auth-btn {
+  background: linear-gradient(135deg, var(--neon-violet), var(--neon-magenta)) !important;
+  border: none !important;
+  padding: 14px 24px !important;
+  font-weight: 600 !important;
+  font-size: 15px !important;
+  border-radius: var(--radius-sm) !important;
+  transition: all 0.3s !important;
+}
+
+.auth-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4) !important;
+}
+
+/* Footer */
+.auth-footer {
+  margin-top: 28px;
   text-align: center;
   font-size: 14px;
-  color: #6b7280;
+  color: var(--text-secondary);
+  padding-top: 20px;
+  border-top: 1px solid var(--border-color);
 }
 
-.register-link {
-  color: #6366f1;
-  font-weight: 500;
-  margin-left: 4px;
+.auth-link {
+  color: var(--color-primary);
+  font-weight: 600;
+  margin-left: 6px;
   text-decoration: none;
-  transition: color 0.2s;
+  transition: all 0.2s;
 }
 
-.register-link:hover {
-  color: #4f46e5;
-  text-decoration: underline;
+.auth-link:hover {
+  color: var(--neon-magenta);
+  text-shadow: 0 0 10px var(--neon-magenta-glow);
 }
 
+/* PrimeVue Overrides */
 :deep(.p-inputtext),
 :deep(.p-password-input) {
   width: 100%;
-  padding: 12px;
-  border-radius: 8px;
+  padding: 14px 16px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-primary);
+  border: 1.5px solid var(--border-color);
+  color: var(--text-primary);
+  transition: all 0.3s;
+}
+
+:deep(.p-inputtext:focus),
+:deep(.p-password-input:focus) {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-glow);
+}
+
+:deep(.p-inputtext::placeholder),
+:deep(.p-password-input::placeholder) {
+  color: var(--text-muted);
 }
 
 :deep(.p-invalid) {
-  border-color: #dc2626 !important;
+  border-color: var(--color-danger) !important;
+}
+
+:deep(.p-password) {
+  width: 100%;
+}
+
+:deep(.p-password-input) {
+  width: 100%;
 }
 </style>
 

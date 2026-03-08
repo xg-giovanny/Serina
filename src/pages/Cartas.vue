@@ -225,7 +225,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useToast } from 'primevue/usetoast'
 import * as XLSX from 'xlsx'
 import Button from 'primevue/button'
@@ -361,21 +361,39 @@ const onFileSelect = (event) => {
   }
 }
 
+// Importar servicio de autenticación
+import { getSession } from '@/services/authService'
+
 const importCartas = async () => {
   if (previewData.value.length === 0) return
   
   importing.value = true
   try {
+    // Obtener usuario actual
+    const session = getSession()
+    const userId = session?.id
+    
     if (isSupabaseConfigured()) {
+      if (!userId) {
+        throw new Error('No hay sesión activa. Por favor, inicia sesión.')
+      }
+      
+      // Agregar id_usuario a cada carta
+      const cartasConUsuario = previewData.value.map(carta => ({
+        ...carta,
+        id_usuario: userId
+      }))
+      
       // Import to Supabase
-      const { data, error } = await supabase.from('cartas').insert(previewData.value).select()
+      const { data, error } = await supabase.from('cartas').insert(cartasConUsuario).select()
       if (error) throw error
       cartas.value = [...data, ...cartas.value]
     } else {
       // Demo mode
       const newCartas = previewData.value.map((c, idx) => ({
         ...c,
-        id: Date.now() + idx
+        id: Date.now() + idx,
+        id_usuario: userId || 1
       }))
       cartas.value = [...newCartas, ...cartas.value]
     }
@@ -425,8 +443,34 @@ const loadData = async () => {
 }
 
 onMounted(() => {
+  // Load theme from localStorage
+  const savedTheme = localStorage.getItem('theme')
+  if (savedTheme === 'dark') {
+    document.documentElement.classList.add('dark')
+  } else if (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    document.documentElement.classList.add('dark')
+  }
+  
+  // Listen for theme changes
+  window.addEventListener('themechange', handleThemeChange)
+  window.addEventListener('theme-changed', handleThemeChange)
+  
   loadData()
 })
+
+onUnmounted(() => {
+  window.removeEventListener('themechange', handleThemeChange)
+  window.removeEventListener('theme-changed', handleThemeChange)
+})
+
+const handleThemeChange = () => {
+  const savedTheme = localStorage.getItem('theme')
+  if (savedTheme === 'dark') {
+    document.documentElement.classList.add('dark')
+  } else {
+    document.documentElement.classList.remove('dark')
+  }
+}
 </script>
 
 <style scoped>

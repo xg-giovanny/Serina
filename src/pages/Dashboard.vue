@@ -1,21 +1,6 @@
 <template>
   <div class="fade-in">
-    <!-- Page Header -->
-    <div class="page-header">
-      <div>
-        <h1 class="page-title">Serina</h1>
-        <p class="page-subtitle">Todo en su lugar.</p>
-      </div>
-      <div class="flex gap-2">
-        <Button 
-          :icon="isDark ? 'pi pi-sun' : 'pi pi-moon'" 
-          :label="isDark ? 'Claro' : 'Oscuro'"
-          :class="isDark ? 'p-button-warning' : 'p-button-secondary'"
-          @click="toggleTheme"
-          outlined
-        />
-      </div>
-    </div>
+
 
     <!-- Stats Cards -->
     <div class="grid grid-cols-4 mb-6">
@@ -132,7 +117,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { Bar, Doughnut, Line } from 'vue-chartjs'
 import {
   Chart as ChartJS,
@@ -171,11 +156,24 @@ const isDark = ref(false)
 const gastos = ref([])
 const cartas = ref([])
 
-// Theme
-const toggleTheme = () => {
-  isDark.value = !isDark.value
-  localStorage.setItem('theme', isDark.value ? 'dark' : 'light')
-  document.documentElement.classList.toggle('dark', isDark.value)
+// Light mode colors
+const lightColors = {
+  primary: '#6366f1',
+  success: '#22c55e',
+  warning: '#f59e0b',
+  danger: '#ef4444',
+  info: '#3b82f6',
+  purple: '#8b5cf6'
+}
+
+// Dark mode colors
+const darkColors = {
+  primary: '#818cf8',
+  success: '#34d399',
+  warning: '#fbbf24',
+  danger: '#f87171',
+  info: '#60a5fa',
+  purple: '#a78bfa'
 }
 
 // Computed
@@ -202,6 +200,9 @@ const recentTransactions = computed(() => {
     .slice(0, 5)
 })
 
+// Get current colors based on theme
+const currentColors = computed(() => isDark.value ? darkColors : lightColors)
+
 // Chart Data - Gastos por Categoría
 const chartDataCategoria = computed(() => {
   const categorias = {}
@@ -210,14 +211,14 @@ const chartDataCategoria = computed(() => {
     categorias[cat] = (categorias[cat] || 0) + parseFloat(g.precio || 0)
   })
   
+  const colors = currentColors.value
+  
   return {
     labels: Object.keys(categorias),
     datasets: [{
       label: 'Gastos por Categoría',
       data: Object.values(categorias),
-      backgroundColor: isDark.value 
-        ? ['#818cf8', '#34d399', '#fbbf24', '#f87171', '#60a5fa', '#a78bfa']
-        : ['#6366f1', '#22c55e', '#f59e0b', '#ef4444', '#3b82f6', '#8b5cf6'],
+      backgroundColor: [colors.primary, colors.success, colors.warning, colors.danger, colors.info, colors.purple],
       borderRadius: 8
     }]
   }
@@ -231,13 +232,13 @@ const chartDataMetodo = computed(() => {
     metodos[met] = (metodos[met] || 0) + parseFloat(g.precio || 0)
   })
   
+  const colors = currentColors.value
+  
   return {
     labels: Object.keys(metodos),
     datasets: [{
       data: Object.values(metodos),
-      backgroundColor: isDark.value
-        ? ['#818cf8', '#34d399', '#fbbf24', '#f87171', '#60a5fa']
-        : ['#6366f1', '#22c55e', '#f59e0b', '#ef4444', '#3b82f6'],
+      backgroundColor: [colors.primary, colors.success, colors.warning, colors.danger, colors.info],
       borderWidth: 0
     }]
   }
@@ -255,13 +256,14 @@ const chartDataMensual = computed(() => {
   })
   
   const sortedMonths = Object.keys(meses).sort()
+  const colors = currentColors.value
   
   return {
     labels: sortedMonths,
     datasets: [{
       label: 'Gastos Mensuales',
       data: sortedMonths.map(m => meses[m]),
-      borderColor: isDark.value ? '#818cf8' : '#6366f1',
+      borderColor: colors.primary,
       backgroundColor: isDark.value ? 'rgba(129, 140, 248, 0.1)' : 'rgba(99, 102, 241, 0.1)',
       fill: true,
       tension: 0.4
@@ -270,7 +272,7 @@ const chartDataMensual = computed(() => {
 })
 
 // Chart Options
-const chartOptions = {
+const chartOptions = computed(() => ({
   responsive: true,
   maintainAspectRatio: false,
   plugins: {
@@ -279,25 +281,28 @@ const chartOptions = {
   scales: {
     y: {
       beginAtZero: true,
-      grid: { color: 'rgba(0,0,0,0.05)' }
+      grid: { color: isDark.value ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }
     },
     x: {
       grid: { display: false }
     }
   }
-}
+}))
 
-const chartOptionsDonut = {
+const chartOptionsDonut = computed(() => ({
   responsive: true,
   maintainAspectRatio: false,
   plugins: {
     legend: {
-      position: 'bottom'
+      position: 'bottom',
+      labels: {
+        color: isDark.value ? '#f1f5f9' : '#374151'
+      }
     }
   }
-}
+}))
 
-const chartOptionsLine = {
+const chartOptionsLine = computed(() => ({
   responsive: true,
   maintainAspectRatio: false,
   plugins: {
@@ -306,13 +311,13 @@ const chartOptionsLine = {
   scales: {
     y: {
       beginAtZero: true,
-      grid: { color: 'rgba(0,0,0,0.05)' }
+      grid: { color: isDark.value ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }
     },
     x: {
       grid: { display: false }
     }
   }
-}
+}))
 
 // Methods
 const formatNumber = (num) => {
@@ -333,6 +338,12 @@ const getCategorySeverity = (categoria) => {
     'compras': 'secondary'
   }
   return severities[categoria?.toLowerCase()] || 'info'
+}
+
+// Handle theme changes
+const handleThemeChange = () => {
+  const savedTheme = localStorage.getItem('theme')
+  isDark.value = savedTheme === 'dark'
 }
 
 const loadData = async () => {
@@ -359,7 +370,7 @@ const loadData = async () => {
 }
 
 onMounted(async () => {
-  // Theme
+  // Load theme from localStorage
   const savedTheme = localStorage.getItem('theme')
   if (savedTheme) {
     isDark.value = savedTheme === 'dark'
@@ -368,7 +379,16 @@ onMounted(async () => {
   }
   document.documentElement.classList.toggle('dark', isDark.value)
 
+  // Listen for theme changes
+  window.addEventListener('themechange', handleThemeChange)
+  window.addEventListener('theme-changed', handleThemeChange)
+
   await loadData()
+})
+
+onUnmounted(() => {
+  window.removeEventListener('themechange', handleThemeChange)
+  window.removeEventListener('theme-changed', handleThemeChange)
 })
 </script>
 
