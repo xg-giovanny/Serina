@@ -6,7 +6,7 @@
       <div class="sidebar-header">
         <div class="sidebar-logo">
           <i class="pi pi-bolt"></i>
-          <span v-if="!sidebarCollapsed">Dashboard</span>
+          <span v-if="!sidebarCollapsed">Serina</span>
         </div>
         <button class="sidebar-toggle" @click="toggleSidebar">
           <i :class="sidebarCollapsed ? 'pi pi-angle-right' : 'pi pi-angle-left'"></i>
