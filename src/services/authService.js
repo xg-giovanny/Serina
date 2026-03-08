@@ -42,11 +42,11 @@ export async function login(username, password) {
       
       // Crear objeto de sesión
       const session = {
-        id: user.id,
+        id: user.id_usuario,
         username: user.username,
         status: user.status,
         created_at: user.created_at,
-        token: btoa(JSON.stringify({ id: user.id, username: user.username, status: user.status }))
+        token: btoa(JSON.stringify({ id: String(user.id_usuario), username: user.username, status: user.status }))
       }
 
       // Guardar sesión en localStorage
@@ -90,7 +90,7 @@ export async function register(username, password) {
 
     if (error) throw error
 
-    return { user: { id: data, username }, error: null }
+    return { user: { id: data, id_usuario: data, username }, error: null }
   } catch (error) {
     console.error('Error en registro:', error)
     return { user: null, error }

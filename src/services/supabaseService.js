@@ -5,6 +5,17 @@
  */
 
 import { supabase } from './supabaseClient'
+import { getSession } from './authService'
+
+// Función helper para obtener el id_usuario actual
+function getCurrentUserId() {
+  const session = getSession()
+  console.log('=== getCurrentUserId ===')
+  console.log('Session completa:', JSON.stringify(session))
+  const userId = session?.id || null
+  console.log('ID obtenido:', userId, 'Tipo:', typeof userId)
+  return userId
+}
 
 // ============================================
 // SERVICIOS DE NÓMINA (GASTOS)
@@ -67,9 +78,14 @@ export async function getNominaWithFilters(filters = {}) {
  */
 export async function createNomina(registro) {
   try {
+    const registroWithUser = {
+      ...registro,
+      id_usuario: getCurrentUserId()
+    }
+    
     const { data, error } = await supabase
       .from('nomina')
-      .insert([registro])
+      .insert([registroWithUser])
       .select()
     
     if (error) throw error
@@ -236,9 +252,15 @@ export async function getCartasWithFilters(filters = {}) {
  */
 export async function insertCartas(cartas) {
   try {
+    const idUsuario = getCurrentUserId()
+    const cartasWithUser = cartas.map(carta => ({
+      ...carta,
+      id_usuario: idUsuario
+    }))
+    
     const { data, error } = await supabase
       .from('cartas')
-      .insert(cartas)
+      .insert(cartasWithUser)
       .select()
     
     if (error) throw error
@@ -337,9 +359,14 @@ export async function getAllTabs() {
  */
 export async function createTab(tab) {
   try {
+    const tabWithUser = {
+      ...tab,
+      id_usuario: getCurrentUserId()
+    }
+    
     const { data, error } = await supabase
       .from('tabs')
-      .insert([tab])
+      .insert([tabWithUser])
       .select()
     
     if (error) throw error
