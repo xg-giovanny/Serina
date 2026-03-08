@@ -48,11 +48,28 @@
         </button>
       </nav>
 
-      <!-- Theme Toggle -->
+      <!-- User Info & Logout -->
       <div class="sidebar-footer mt-auto pt-4">
+        <!-- Theme Toggle -->
         <button class="theme-toggle w-full" @click="toggleTheme">
           <i :class="isDark ? 'pi pi-sun' : 'pi pi-moon'"></i>
           <span v-if="!sidebarCollapsed">{{ isDark ? 'Modo Claro' : 'Modo Oscuro' }}</span>
+        </button>
+        
+        <!-- User Info -->
+        <div class="user-info w-full" v-if="authStore.isAuthenticated">
+          <div class="user-avatar">
+            <i class="pi pi-user"></i>
+          </div>
+          <div class="user-details" v-if="!sidebarCollapsed">
+            <span class="user-name">{{ authStore.username }}</span>
+          </div>
+        </div>
+        
+        <!-- Logout Button -->
+        <button class="logout-btn w-full mt-2" @click="handleLogout" v-if="authStore.isAuthenticated">
+          <i class="pi pi-sign-out"></i>
+          <span v-if="!sidebarCollapsed">Cerrar Sesión</span>
         </button>
       </div>
     </aside>
@@ -89,7 +106,7 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useToast } from 'primevue/usetoast'
 import Dialog from 'primevue/dialog'
 import InputText from 'primevue/inputtext'
@@ -97,10 +114,13 @@ import Dropdown from 'primevue/dropdown'
 import Button from 'primevue/button'
 import { supabase, isSupabaseConfigured } from '@/services/supabaseClient'
 import { useTabsStore } from '@/stores/tabsStore'
+import { useAuthStore } from '@/stores/authStore'
 
 const route = useRoute()
+const router = useRouter()
 const toast = useToast()
 const tabsStore = useTabsStore()
+const authStore = useAuthStore()
 
 const sidebarCollapsed = ref(false)
 const isDark = ref(false)
@@ -148,6 +168,12 @@ const toggleTheme = () => {
   window.dispatchEvent(new Event('themechange'))
 }
 
+const handleLogout = () => {
+  authStore.logout()
+  toast.add({ severity: 'info', summary: 'Sesión cerrada', detail: 'Has cerrado sesión correctamente', life: 3000 })
+  router.push('/login')
+}
+
 const loadTabs = async () => {
   if (!isSupabaseConfigured()) return
   const { data } = await supabase.from('tabs').select('*').order('created_at', { ascending: true })
@@ -185,6 +211,9 @@ const addTab = async () => {
 
 // Lifecycle
 onMounted(async () => {
+  // Inicializar sesión de autenticación
+  authStore.initSession()
+  
   // Cargar tema
   const savedTheme = localStorage.getItem('theme')
   if (savedTheme) {
@@ -201,4 +230,241 @@ watch(isDark, (val) => {
   document.documentElement.classList.toggle('dark', val)
 })
 </script>
+
+<style scoped>
+.dashboard-layout {
+  min-height: 100vh;
+  display: flex;
+}
+
+.sidebar {
+  width: 260px;
+  background: #1e1e2f;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  transition: width 0.3s ease;
+  position: fixed;
+  height: 100vh;
+  z-index: 100;
+}
+
+.sidebar.collapsed {
+  width: 70px;
+}
+
+.sidebar-header {
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.sidebar-logo i {
+  font-size: 24px;
+  color: #6366f1;
+}
+
+.sidebar-toggle {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: #fff;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebar-toggle:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 20px 10px;
+  overflow-y: auto;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  border-radius: 8px;
+  margin-bottom: 4px;
+  transition: all 0.2s;
+  background: none;
+  border: none;
+  width: 100%;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.nav-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.nav-item.active {
+  background: #6366f1;
+  color: #fff;
+}
+
+.nav-item i {
+  font-size: 18px;
+  width: 20px;
+  text-align: center;
+}
+
+.sidebar-footer {
+  padding: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.theme-toggle,
+.logout-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px 16px;
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.05);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 14px;
+  width: 100%;
+}
+
+.theme-toggle:hover,
+.logout-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+
+.logout-btn {
+  background: rgba(239, 68, 68, 0.2);
+  color: #fca5a5;
+}
+
+.logout-btn:hover {
+  background: rgba(239, 68, 68, 0.4);
+  color: #fff;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  margin-top: 10px;
+}
+
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #6366f1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.user-avatar i {
+  font-size: 16px;
+}
+
+.user-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.user-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.main-content {
+  flex: 1;
+  margin-left: 260px;
+  transition: margin-left 0.3s ease;
+  min-height: 100vh;
+  background: #f8f9fa;
+}
+
+.main-content.sidebar-collapsed {
+  margin-left: 70px;
+}
+
+.text-sm {
+  font-size: 12px;
+}
+
+.text-muted {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.px-4 {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.mt-4 {
+  margin-top: 1rem;
+}
+
+.mb-2 {
+  margin-bottom: 0.5rem;
+}
+
+.mt-2 {
+  margin-top: 0.5rem;
+}
+
+.mt-auto {
+  margin-top: auto;
+}
+
+.pt-4 {
+  padding-top: 1rem;
+}
+
+.w-full {
+  width: 100%;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #374151;
+}
+</style>
 

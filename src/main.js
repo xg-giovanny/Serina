@@ -28,6 +28,7 @@ import Badge from 'primevue/badge'
 import OverlayPanel from 'primevue/overlaypanel'
 import Menu from 'primevue/menu'
 import Tooltip from 'primevue/tooltip'
+import Password from 'primevue/password'
 
 // PrimeVue CSS
 import 'primeicons/primeicons.css'
@@ -78,6 +79,7 @@ app.component('Avatar', Avatar)
 app.component('Badge', Badge)
 app.component('OverlayPanel', OverlayPanel)
 app.component('Menu', Menu)
+app.component('Password', Password)
 
 // Directives
 app.directive('tooltip', Tooltip)

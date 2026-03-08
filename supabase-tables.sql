@@ -108,6 +108,83 @@ CREATE POLICY "Permiso público para tabs" ON tabs
 
 
 -- =====================================================
+-- TABLA: users (Usuarios del sistema)
+-- =====================================================
+CREATE TABLE IF NOT EXISTS users (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    username TEXT NOT NULL UNIQUE,
+    password TEXT NOT NULL,
+    status INTEGER NOT NULL DEFAULT 1,  -- 1 = activo, 0 = inactivo
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Habilitar RLS
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+
+-- Política de acceso público para login (solo lectura)
+CREATE POLICY "Permiso público para users" ON users
+    FOR ALL
+    USING (true)
+    WITH CHECK (true);
+
+-- Índice único para username
+CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
+
+
+-- =====================================================
+-- FUNCIÓN: Hash de contraseña usando bcrypt
+-- =====================================================
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+
+-- Eliminar funciones existentes si existen (para actualización)
+DROP FUNCTION IF EXISTS register_user(TEXT, TEXT);
+DROP FUNCTION IF EXISTS verify_credentials(TEXT, TEXT);
+DROP FUNCTION IF EXISTS set_user_status(UUID, INTEGER);
+
+-- Función para registrar usuario con password encriptado (status = 1 por defecto)
+CREATE OR REPLACE FUNCTION register_user(p_username TEXT, p_password TEXT)
+RETURNS UUID AS $$
+DECLARE
+    new_user_id UUID;
+BEGIN
+    -- Verificar si el usuario ya existe
+    IF EXISTS (SELECT 1 FROM users WHERE username = p_username) THEN
+        RAISE EXCEPTION 'El usuario ya existe';
+    END IF;
+    
+    -- Crear usuario con password encriptado y status = 1 (activo)
+    INSERT INTO users (username, password, status)
+    VALUES (p_username, crypt(p_password, gen_salt('bf')), 1)
+    RETURNING id INTO new_user_id;
+    
+    RETURN new_user_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Función para verificar credenciales Y estado del usuario
+CREATE OR REPLACE FUNCTION verify_credentials(p_username TEXT, p_password TEXT)
+RETURNS TABLE(id UUID, username TEXT, status INTEGER, created_at TIMESTAMPTZ) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT u.id, u.username, u.status, u.created_at
+    FROM users u
+    WHERE u.username = p_username
+    AND u.password = crypt(p_password, u.password)
+    AND u.status = 1;  -- Solo permite usuarios activos
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Función para cambiar estado del usuario (activar/desactivar)
+CREATE OR REPLACE FUNCTION set_user_status(p_user_id UUID, p_status INTEGER)
+RETURNS BOOLEAN AS $$
+BEGIN
+    UPDATE users SET status = p_status WHERE id = p_user_id;
+    RETURN FOUND;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+
+-- =====================================================
 -- VERIFICACIÓN DE TABLAS CREADAS
 -- =====================================================
 SELECT 
@@ -123,7 +200,12 @@ UNION ALL
 SELECT 
     'tabs' AS tabla,
     COUNT(*) AS registros
-FROM tabs;
+FROM tabs
+UNION ALL
+SELECT 
+    'users' AS tabla,
+    COUNT(*) AS registros
+FROM users;
 
 
 -- =====================================================
@@ -140,5 +222,6 @@ FROM tabs;
 -- - Timestamps automáticos
 -- - Índices para mejor rendimiento
 -- - Row Level Security configurado
+-- - Funciones seguras para autenticación con bcrypt
 -- =====================================================
 
