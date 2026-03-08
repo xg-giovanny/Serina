@@ -10,11 +10,7 @@ import { getSession } from './authService'
 // Función helper para obtener el id_usuario actual
 function getCurrentUserId() {
   const session = getSession()
-  console.log('=== getCurrentUserId ===')
-  console.log('Session completa:', JSON.stringify(session))
-  const userId = session?.id || null
-  console.log('ID obtenido:', userId, 'Tipo:', typeof userId)
-  return userId
+  return session?.id || null
 }
 
 // ============================================

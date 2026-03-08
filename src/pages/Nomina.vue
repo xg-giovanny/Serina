@@ -215,6 +215,13 @@ import IconField from 'primevue/iconfield'
 import InputIcon from 'primevue/inputicon'
 import Tooltip from 'primevue/tooltip'
 import { supabase, isSupabaseConfigured } from '@/services/supabaseClient'
+import { getSession } from '@/services/authService'
+
+// Obtener ID del usuario actual
+const getCurrentUserId = () => {
+  const session = getSession()
+  return session?.id || null
+}
 
 // FilterMatchMode constants - defined locally
 const FilterMatchMode = {
@@ -355,13 +362,16 @@ const saveItem = async () => {
   
   saving.value = true
   try {
+    const id_usuario = getCurrentUserId()
+    
     const data = {
       nombre: form.value.nombre,
       precio: form.value.precio,
       categoria: form.value.categoria,
       metodo_pago: form.value.metodo_pago,
       fecha: form.value.fecha,
-      observacion: form.value.observacion
+      observacion: form.value.observacion,
+      id_usuario: id_usuario
     }
     
     if (editingItem.value) {
