@@ -1,0 +1,3 @@
+# Netlify SPA redirect - Redirige todas las rutas a index.html para Vue Router
+/*    /index.html   200
+

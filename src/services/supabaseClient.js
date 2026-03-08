@@ -20,7 +20,7 @@ if (isValidUrl && supabaseAnonKey) {
 export { supabase }
 
 /**
- * Verificar si Supabase está configurado
+ * Verificar si Supabase está configuradoS
  */
 export function isSupabaseConfigured() {
   return supabase !== null
