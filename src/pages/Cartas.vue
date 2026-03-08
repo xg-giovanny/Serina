@@ -20,7 +20,7 @@
     <div class="filters-bar">
       <IconField iconPosition="left" class="flex-1">
         <InputIcon class="pi pi-search" />
-        <InputText v-model="searchQuery" placeholder="Buscar por personaje..." class="w-full" />
+        <InputText v-model="searchQuery" class="w-full" />
       </IconField>
       <Dropdown 
         v-model="filterSeries" 

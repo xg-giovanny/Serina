@@ -17,7 +17,7 @@
     <div class="filters-bar">
       <IconField iconPosition="left" class="flex-1">
         <InputIcon class="pi pi-search" />
-        <InputText v-model="filters['global'].value" placeholder="Buscar..." class="w-full" />
+        <InputText v-model="filters['global'].value"  class="w-full" />
       </IconField>
       <Dropdown 
         v-model="filters['categoria'].value" 

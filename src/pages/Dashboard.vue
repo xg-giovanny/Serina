@@ -4,7 +4,7 @@
     <div class="page-header">
       <div>
         <h1 class="page-title">Serina</h1>
-        <p class="page-subtitle">Resumen de tu actividad</p>
+        <p class="page-subtitle">Todo en su lugar.</p>
       </div>
       <div class="flex gap-2">
         <Button 
