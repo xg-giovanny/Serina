@@ -1,30 +1,38 @@
-version: '3.8'
-
 services:
-  vue-app:
+  client:
     build:
-      context: .
+      context: ./client
       dockerfile: Dockerfile
-    container_name: serina-dev
+    container_name: serina-client
     ports:
       - "3000:3000"
     volumes:
-      # Montar código fuente para hot reload
-      # .:/app monta todo el directorio actual en /app del contenedor
-      - .:/app
-      # Volumen anónimo para node_modules
-      # Esto evita que node_modules del host sobrescriba el del contenedor
+      - ./client:/app
       - /app/node_modules
     environment:
       - CHOKIDAR_USEPOLLING=true
       - WATCHPACK_POLLING=true
+    depends_on:
+      - server
     restart: unless-stopped
-    # stderr y stdout para ver logs del servidor Vite
     stdin_open: true
     tty: true
 
-# Red opcional para comunicar con otros servicios (ej: Supabase)
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: serina-server
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+      - ./.env:/app/.env:ro
+    env_file:
+      - .env
+    restart: unless-stopped
+
 networks:
   default:
     name: serina-network
-
