@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: viaje-espana-dev
+    container_name: serina-dev
     ports:
       - "3000:3000"
     volumes:
@@ -26,5 +26,5 @@ services:
 # Red opcional para comunicar con otros servicios (ej: Supabase)
 networks:
   default:
-    name: viaje-espana-network
+    name: serina-network
 
